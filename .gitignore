@@ -1,0 +1,11 @@
+# Root gitignore
+node_modules/
+.next/
+.env
+.env.local
+.env.*
+__pycache__/
+*.pyc
+backend/models/
+backend/venv/
+.DS_Store
