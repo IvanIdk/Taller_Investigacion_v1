@@ -1,0 +1,78 @@
+================================================================================
+  DESPLIEGUE EN VERCEL — Sistema CAT Universidad Continental
+  Fecha: 2026-06-23
+================================================================================
+
+PRE-REQUISITOS
+--------------
+  - Cuenta en https://vercel.com
+  - Repositorio en GitHub/GitLab/Bitbucket (recomendado)
+  - Build local exitoso: cd frontend && npm run build  (verificado OK)
+
+CONFIGURACIÓN DEL PROYECTO
+--------------------------
+  1. Ir a https://vercel.com/new
+  2. Importar el repositorio Sistema_prediccion
+  3. En "Root Directory" seleccionar: frontend
+  4. Framework Preset: Next.js (detectado automáticamente)
+  5. Build Command: npm run build
+  6. Output Directory: .next (default Next.js)
+  7. Install Command: npm install
+
+VARIABLES DE ENTORNO (Settings → Environment Variables)
+-------------------------------------------------------
+  NEXT_PUBLIC_SUPABASE_URL       = https://fruijbbatbznxgvathbk.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY  = (tu anon key de Supabase)
+  NEXT_PUBLIC_BACKEND_URL        = (URL pública del backend FastAPI, si existe)
+  STOP_THRESHOLD                 = 95   (opcional, parada temprana CAT)
+
+  Nota: Sin backend FastAPI, la app usa fallback JS local automáticamente.
+  Nota: Sin Supabase, las API routes usan datos mock de /mocks.
+
+DESPLIEGUE POR CLI (cuando npm funcione)
+-----------------------------------------
+  npm install -g vercel
+  cd frontend
+  vercel login
+  vercel --prod
+
+  O desde la raíz con root directory:
+  vercel --prod --cwd frontend
+
+DESPLIEGUE POR GIT (recomendado)
+--------------------------------
+  1. Push de la rama a GitHub
+  2. Conectar repo en Vercel (Root Directory = frontend)
+  3. Cada push a main/master dispara deploy automático
+
+VERIFICACIÓN POST-DEPLOY
+------------------------
+  [ ] https://tu-proyecto.vercel.app carga la landing
+  [ ] /auth muestra QuickLogin (demo)
+  [ ] Login Estudiante → /test funciona con mocks
+  [ ] Login Admin → /admin/dashboard muestra gráficos
+  [ ] Login Psicólogo → /psicologo/estudiantes lista mock
+  [ ] npm run build pasa sin errores TypeScript
+
+ARCHIVOS DE CONFIGURACIÓN
+-------------------------
+  frontend/vercel.json   Configuración Next.js
+  vercel.json (raíz)     Referencia; usar Root Directory = frontend
+
+MOCKS EN PRODUCCIÓN
+-------------------
+  Las API routes tienen fallback integrado. En Vercel sin Supabase
+  conectado, el sistema sirve datos de demo desde memoria (mismos
+  datos que /mocks/*.json).
+
+LIMITACIÓN ACTUAL
+-----------------
+  El despliegue automático desde esta sesión falló por error de red
+  (ECONNRESET al registry.npmjs.org). Ejecuta manualmente:
+
+    cd frontend
+    npx vercel --prod
+
+  cuando tengas conexión estable a npm.
+
+================================================================================

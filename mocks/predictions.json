@@ -1,0 +1,46 @@
+{
+  "bajo_riesgo": {
+    "prob_ansiedad": 0.12,
+    "prob_depresion": 0.08,
+    "tac_score": 100.0,
+    "shap_values": [
+      { "feature_name": "Nerviosismo / Ansiedad (P1)", "attribution": 0.02 },
+      { "feature_name": "Poco interés / Anhedonia (P11)", "attribution": -0.01 }
+    ],
+    "model_type": "RandomForestClassifier",
+    "early_stop": false
+  },
+  "riesgo_medio": {
+    "prob_ansiedad": 0.62,
+    "prob_depresion": 0.41,
+    "tac_score": 75.0,
+    "shap_values": [
+      { "feature_name": "Preocupación incontrolable (P2)", "attribution": 0.12 },
+      { "feature_name": "Cansancio / Falta de energía (P14)", "attribution": 0.08 }
+    ],
+    "model_type": "RandomForestClassifier",
+    "early_stop": false
+  },
+  "riesgo_alto_early_stop": {
+    "prob_ansiedad": 0.96,
+    "prob_depresion": 0.88,
+    "tac_score": 100.0,
+    "shap_values": [
+      { "feature_name": "Pensamientos de autolesión (P19)", "attribution": 0.35 },
+      { "feature_name": "Ánimo decaído / Tristeza (P12)", "attribution": 0.22 },
+      { "feature_name": "Temor a catástrofes (P7)", "attribution": 0.18 }
+    ],
+    "model_type": "RandomForestClassifier",
+    "early_stop": true
+  },
+  "fallback_js": {
+    "prob_ansiedad": 0.55,
+    "prob_depresion": 0.48,
+    "tac_score": 100.0,
+    "shap_values": [
+      { "feature_name": "Nerviosismo / Ansiedad (P1)", "attribution": 0.08 }
+    ],
+    "model_type": "Fallback (Logistic JS)",
+    "early_stop": false
+  }
+}

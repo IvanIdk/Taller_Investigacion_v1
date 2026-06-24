@@ -115,7 +115,7 @@ export async function POST(req: Request) {
     } catch (dbErr) {
       // Fallback
       const newId = MOCK_QUESTIONS.reduce((max, q) => q.id > max ? q.id : max, 0) + 1;
-      const newQ = { id: newId, text, category, type, a: a ?? 1.0, b: b ?? 0.0, c: c ?? 0.0, active: active ?? true };
+      const newQ = { id: newId, text, category, type, a: a ?? 1.0, b: b ?? 0.0, c: c ?? 0.0, active: active ?? true, options: DEFAULT_OPTIONS };
       MOCK_QUESTIONS.push(newQ);
       return NextResponse.json(newQ);
     }

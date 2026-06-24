@@ -25,6 +25,7 @@ export default function RootLayout({
     localStorage.removeItem('demo_profile');
     localStorage.removeItem('demo_user_id');
     localStorage.removeItem('demo_logged_in');
+    document.cookie = 'demo_role=; path=/; max-age=0';
     setRole(null);
     setProfile(null);
     window.location.href = '/auth';

@@ -1,39 +1,33 @@
 // Page: Administrador Dashboard (app/admin/dashboard/page.tsx)
 'use client';
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRequireRole } from '@/lib/hooks/useRequireRole';
+import { demoFetch } from '@/lib/api/demoFetch';
+import type { AdminStats } from '@/lib/types/domain';
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [stats, setStats] = useState<any | null>(null);
+  const { ready } = useRequireRole(['admin']);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setMounted(true);
-    const role = localStorage.getItem('demo_role');
-    if (role !== 'admin') {
-      router.push('/auth');
-      return;
-    }
+    if (!ready) return;
 
     async function loadStats() {
       try {
-        const res = await fetch('/api/admin/stats');
+        const res = await demoFetch('/api/admin/stats');
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as AdminStats;
           setStats(data);
         }
-      } catch (err) {
-        console.error('Failed to load global admin statistics:', err);
       } finally {
         setLoading(false);
       }
     }
     loadStats();
-  }, [router]);
+  }, [ready]);
 
-  if (!mounted || loading || !stats) {
+  if (!ready || loading || !stats) {
     return (
       <div className="flex-grow flex flex-col items-center justify-center min-h-[50vh] gap-4">
         <div className="w-8 h-8 rounded-full border-4 border-purple-500/20 border-t-purple-400 animate-spin" />

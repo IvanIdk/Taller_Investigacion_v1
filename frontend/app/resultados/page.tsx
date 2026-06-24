@@ -4,11 +4,13 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import RiskMeter from '@/components/RiskMeter';
 import ShapChart from '@/components/ShapChart';
+import { getRiskDisplay, maxProbability } from '@/lib/risk';
+import type { PredictionResult } from '@/lib/types/domain';
 
 export default function ResultadosPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [prediction, setPrediction] = useState<any>(null);
+  const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [answersCount, setAnswersCount] = useState(0);
   const [citasNotes, setCitasNotes] = useState('');
   const [citaSuccess, setCitaSuccess] = useState(false);
@@ -80,20 +82,9 @@ export default function ResultadosPage() {
     );
   }
 
-  const maxProb = Math.max(prediction.prob_ansiedad, prediction.prob_depresion);
-  let statusBadge = 'Bajo Riesgo';
-  let statusClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-  let recommendationText = 'Tu evaluación indica un estado de bienestar emocional óptimo. Continúa manteniendo hábitos saludables y participa de los talleres de mindfulness grupales de Bienestar.';
-  
-  if (maxProb >= 0.75) {
-    statusBadge = 'Riesgo Crítico';
-    statusClass = 'bg-rose-500/15 text-rose-400 border-rose-500/30 animate-pulse';
-    recommendationText = 'Se ha identificado un nivel elevado de malestar emocional. Es de suma importancia recibir acompañamiento profesional. Te sugerimos agendar una sesión diagnóstica prioritaria con nuestro equipo de psicología a continuación.';
-  } else if (maxProb >= 0.40) {
-    statusBadge = 'Riesgo Moderado';
-    statusClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-    recommendationText = 'Presentas algunos indicadores moderados de tensión o cansancio emocional. Te recomendamos revisar nuestras guías de autoayuda cognitivo-conductual y considerar solicitar una cita de consejería preventiva.';
-  }
+  const { badge: statusBadge, className: statusClass, recommendation: recommendationText } =
+    getRiskDisplay(prediction.prob_ansiedad, prediction.prob_depresion);
+  const maxProb = maxProbability(prediction.prob_ansiedad, prediction.prob_depresion);
 
   return (
     <div className="flex-grow flex flex-col justify-start py-6 gap-8 relative">

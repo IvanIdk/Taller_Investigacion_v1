@@ -1,0 +1,407 @@
+================================================================================
+  PLAN DE PRUEBAS — Sistema de Diagnóstico Predictivo Adaptativo (CAT)
+  Universidad Continental
+  Versión: 1.0 | Fecha: 2026-06-23
+================================================================================
+
+1. OBJETIVO
+-----------
+Garantizar la calidad funcional, de seguridad y de rendimiento del sistema
+full-stack (Next.js + FastAPI + Supabase) mediante pruebas unitarias,
+de integración, de API, de componentes y end-to-end (E2E).
+
+Alcance:
+  - Frontend: lib/, components/, app/api/, middleware, páginas por rol
+  - Backend: ml_service.py, data_generator.py, schemas.py, main.py
+  - Datos mock: carpeta /mocks (fallback sin Supabase ni FastAPI)
+
+Estado actual: NO existen archivos de prueba automatizados. Este documento
+define el plan completo a implementar.
+
+================================================================================
+2. ESTRATEGIA DE PRUEBAS
+================================================================================
+
+  Nivel              Herramienta sugerida     Cobertura objetivo
+  ----------------   ----------------------   --------------------
+  Unitarias (TS)     Vitest + @testing-library  lib/, utils, hooks
+  Unitarias (Py)     pytest + pytest-asyncio    backend/
+  Componentes        Vitest + RTL               components/
+  API Routes         Vitest + node-mocks        app/api/
+  Integración        Supertest / fetch mock     Frontend ↔ Backend
+  E2E                Playwright                 flujos por rol
+  Manual / UAT       Checklist (sección 8)      demo académica
+
+  Comandos propuestos (a configurar):
+    cd frontend && npm run test          # Vitest
+    cd frontend && npm run test:e2e      # Playwright
+    cd backend  && pytest                # Python
+
+================================================================================
+3. PRUEBAS UNITARIAS — FRONTEND (lib/)
+================================================================================
+
+3.1 lib/cat.ts — Motor CAT (IRT 2PL)
+------------------------------------
+  ID       Caso de prueba                              Entrada                    Resultado esperado
+  CAT-01   Probabilidad 2PL en theta=0, b=0            a=1, b=0, c=0, theta=0     P ≈ 0.5
+  CAT-02   Probabilidad con guessing (3PL)             c=0.25, theta<<b           P ≥ c
+  CAT-03   estimateTheta sin respuestas                answers=[], category         theta = 0.0
+  CAT-04   estimateTheta respuestas positivas          values >= 2                theta > 0
+  CAT-05   estimateTheta respuestas negativas          values <= 1                theta < 0
+  CAT-06   estimateTheta límite superior               todas value=3              theta ≤ 3.0
+  CAT-07   estimateTheta límite inferior               todas value=0              theta ≥ -3.0
+  CAT-08   getItemInformation máximo en theta≈b        a=2, b=0.5                 info > 0
+  CAT-09   selectNextItem excluye respondidas          5 preguntas, 3 answered    retorna no respondida
+  CAT-10   selectNextItem maximiza Fisher Info         banco 10 ítems             ítem con max info
+  CAT-11   selectNextItem sin candidatos               todas respondidas          null
+  CAT-12   selectNextTACItem primera TAC libre         4 TAC, 2 answered          TAC no respondida
+  CAT-13   isTACScheduled en múltiplos de 4            count=4,8,12               true
+  CAT-14   isTACScheduled fuera de schedule            count=3,5,7                false
+
+3.2 lib/risk.ts — Clasificación de riesgo
+-----------------------------------------
+  ID       Caso de prueba                              Entrada                    Resultado esperado
+  RSK-01   maxProbability                              0.6, 0.9                   0.9
+  RSK-02   getRiskLevel Alto                           max >= 0.75                'Alto'
+  RSK-03   getRiskLevel Medio                            0.4 <= max < 0.75          'Medio'
+  RSK-04   getRiskLevel Bajo                             max < 0.4                  'Bajo'
+  RSK-05   getRiskDisplay crítico                      0.96, 0.88                 badge 'Riesgo Crítico'
+  RSK-06   getRiskDisplay moderado                     0.55, 0.30                 badge 'Riesgo Moderado'
+  RSK-07   getRiskDisplay bajo                          0.15, 0.18                 badge 'Bajo Riesgo'
+  RSK-08   Umbral exacto high (0.75)                   0.75, 0.10                 'Alto'
+
+3.3 lib/admin/aggregateStats.ts
+-------------------------------
+  ID       Caso de prueba                              Entrada                    Resultado esperado
+  ADM-01   total_tests correcto                        3 tests mock               total_tests = 3
+  ADM-02   distribución riesgo                         1 alto, 1 medio, 1 bajo    valores [1,1,1]
+  ADM-03   promedios_facultad                          2 tests misma facultad     promedio aritmético
+  ADM-04   promedios_edad grupos                       edad 17, 20, 23            buckets correctos
+  ADM-05   ranking_prevalencia top 5                   6 carreras                 max 5 entradas
+  ADM-06   alertas_pendientes = alto                   2 alto                     alertas = 2
+  ADM-07   predicción array vs objeto                  predictions: [{...}]       normaliza OK
+  ADM-08   test sin predicción                         predictions: null          se omite del conteo
+
+3.4 lib/students/filters.ts
+---------------------------
+  ID       Caso de prueba                              Entrada                    Resultado esperado
+  FLT-01   filterStudents sin filtros                  search=''                  todos los estudiantes
+  FLT-02   filterStudents por nombre                   search='sofía'             1 resultado
+  FLT-03   filterStudents por email                    search='72109845'          1 resultado
+  FLT-04   filterStudents por facultad                 facultad='Derecho'         solo Derecho
+  FLT-05   filterStudents por carrera                  carrera='Psicología'       solo Psicología
+  FLT-06   filterStudents por riesgo                   riesgo='Alto'              solo Alto
+  FLT-07   filterStudents combinado                    search + facultad          intersección
+  FLT-08   filterStudents sin coincidencias            search='xyz999'            array vacío
+
+3.5 lib/api/withDbFallback.ts
+-----------------------------
+  ID       Caso de prueba                              Entrada                    Resultado esperado
+  DBF-01   query exitosa                               query retorna data         JSON con data
+  DBF-02   query lanza error                           throw Error                JSON fallback
+  DBF-03   respuesta es NextResponse                   status 200                 Content-Type JSON
+
+3.6 lib/api/routeAuth.ts — requireApiRole
+-----------------------------------------
+  ID       Caso de prueba                              Entrada                    Resultado esperado
+  AUT-01   Demo header admin válido                    x-demo-role: admin         ok: true, role admin
+  AUT-02   Demo header rol no permitido                x-demo-role: estudiante    ok: false, 403
+  AUT-03   Sin headers demo ni Bearer                  req vacío                  ok: false, 401
+  AUT-04   Bearer token Supabase válido                Authorization: Bearer ...  ok según user_roles
+  AUT-05   allowedRoles incluye psicologo              role psicologo             ok en ruta psicólogo
+
+3.7 lib/api/errors.ts
+---------------------
+  ID       Caso de prueba                              Entrada                    Resultado esperado
+  ERR-01   badRequest                                  msg                        status 400
+  ERR-02   unauthorized                                msg                        status 401
+  ERR-03   notFound                                    msg                        status 404
+  ERR-04   internalError                               msg                        status 500
+
+3.8 lib/constants/
+------------------
+  ID       Caso de prueba                              Resultado esperado
+  CON-01   RISK_THRESHOLDS.high = 0.75
+  CON-02   RISK_COLORS tiene Alto, Medio, Bajo
+  CON-03   Likert labels 0-3 completos (4 opciones)
+
+3.9 lib/hooks/useRequireRole.ts
+-------------------------------
+  ID       Caso de prueba                              Entrada                    Resultado esperado
+  HK-01    Rol permitido en localStorage               demo_role=admin            no redirige
+  HK-02    Rol no permitido                            demo_role=estudiante       redirect /auth
+  HK-03    Sin rol                                     localStorage vacío         redirect /auth
+
+================================================================================
+4. PRUEBAS UNITARIAS — BACKEND (Python)
+================================================================================
+
+4.1 data_generator.py
+---------------------
+  ID       Caso de prueba                              Resultado esperado
+  GEN-01   generate_synthetic_dataset shape            X: (3000, 20), y: (3000,)
+  GEN-02   Valores en rango Likert                     0 <= X[i,j] <= 3
+  GEN-03   Reproducibilidad con seed                   mismo seed → mismo X
+  GEN-04   Balance de clases razonable                 20% < positivos < 80%
+
+4.2 ml_service.py
+-----------------
+  ID       Caso de prueba                              Resultado esperado
+  ML-01    load_or_train_models carga joblib            modelos no None
+  ML-02    predict respuestas vacías                     prob ≈ 0, tac=100
+  ML-03    predict ansiedad alta                         prob_ansiedad > 0.7
+  ML-04    predict depresión alta                        prob_depresion > 0.7
+  ML-05    predict incluye shap_values                   lista no vacía
+  ML-06    TAC score 100% respuestas correctas           tac_score = 100.0
+  ML-07    TAC score 0% respuestas incorrectas           tac_score = 0.0
+  ML-08    get_model_info retorna accuracy               accuracy 0-1
+  ML-09    SHAP attributions suman coherencia            |attribution| > 0 para síntomas altos
+  ML-10    train_models persiste archivos                rf_ansiedad.joblib existe
+
+4.3 schemas.py (Pydantic)
+-------------------------
+  ID       Caso de prueba                              Resultado esperado
+  SCH-01   PredictionRequest válido                    parse OK
+  SCH-02   AnswerItem value fuera 0-3                  ValidationError
+  SCH-03   PredictionResponse campos requeridos        prob_ansiedad, prob_depresion, tac_score
+
+4.4 constants.py
+----------------
+  ID       Caso de prueba                              Resultado esperado
+  CST-01   FEATURE_NAMES tiene 20 síntomas
+  CST-02   QID_TO_FEATURE mapea 1-20
+  CST-03   TAC_CORRECT_ANSWERS {21:0, 22:3, 23:1, 24:2}
+
+================================================================================
+5. PRUEBAS DE INTEGRACIÓN — API ROUTES (Next.js)
+================================================================================
+
+5.1 POST /api/predict
+---------------------
+  ID       Caso de prueba                              Resultado esperado
+  PRD-01   Body sin answers                            400 'Respuestas inválidas'
+  PRD-02   answers vacío []                            prob ≈ 0
+  PRD-03   FastAPI online                              proxy a backend, model_type RF
+  PRD-04   FastAPI offline (timeout)                   fallback JS, model_type Fallback
+  PRD-05   Early stop prob >= 95%                      early_stop: true
+  PRD-06   TAC scoring correcto                        tac_score según TAC_CORRECT
+  PRD-07   Guardado Supabase con test_id               update tests + insert predictions
+  PRD-08   Supabase offline                            predicción retorna igual (sin DB)
+
+5.2 GET /api/admin/stats
+------------------------
+  ID       Caso de prueba                              Resultado esperado
+  STA-01   Sin auth                                    401
+  STA-02   Rol estudiante                              403
+  STA-03   Admin + DB con tests                        AdminStats agregado real
+  STA-04   Admin + DB vacía                            MOCK_STATS (mocks/admin-stats.json)
+  STA-05   Estructura JSON completa                    todos los campos AdminStats
+
+5.3 GET/PUT /api/admin/users
+----------------------------
+  ID       Caso de prueba                              Resultado esperado
+  USR-01   GET sin auth admin                          401/403
+  USR-02   GET admin + DB offline                      MOCK_USERS
+  USR-03   PUT cambio rol válido                       role actualizado
+  USR-04   PUT sin user_id                             400
+  USR-05   PUT user inexistente                        404
+
+5.4 CRUD /api/admin/questions
+-----------------------------
+  ID       Caso de prueba                              Resultado esperado
+  QST-01   GET banco completo                          24 preguntas (20 CAT + 4 TAC)
+  QST-02   POST nueva pregunta                         id autoincrementado
+  QST-03   PUT actualizar parámetros IRT               a,b,c actualizados
+  QST-04   DELETE pregunta existente                   200, eliminada del banco
+  QST-05   DELETE id inexistente                       404
+
+5.5 GET /api/psicologo/estudiantes
+----------------------------------
+  ID       Caso de prueba                              Resultado esperado
+  EST-01   Sin auth psicologo/admin                    401/403
+  EST-02   Lista completa fallback                     3 estudiantes mock
+  EST-03   Filtro ?riesgo=Alto                         solo est-1
+  EST-04   Filtro ?id=est-2                            detalle Juan Carlos
+  EST-05   ?id=inexistente                             404
+
+5.6 GET/POST/PUT /api/psicologo/citas
+-------------------------------------
+  ID       Caso de prueba                              Resultado esperado
+  CIT-01   GET lista citas                             3 citas mock
+  CIT-02   POST nueva cita                             id nuevo, estado pendiente
+  CIT-03   PUT confirmar cita                          estado='confirmada'
+  CIT-04   PUT cita inexistente                        404
+  CIT-05   Filtro por estado (si implementado)         citas filtradas
+
+================================================================================
+6. PRUEBAS DE COMPONENTES (React)
+================================================================================
+
+  ID       Componente           Caso de prueba                    Resultado esperado
+  CMP-01   QuestionCard         Renderiza texto y 4 opciones      4 botones Likert
+  CMP-02   QuestionCard         Click opción dispara onAnswer     callback con value
+  CMP-03   QuestionCard         Estilo ansiedad vs depresión      clases CSS distintas
+  CMP-04   RiskMeter            prob=0.75                         gauge al 75%
+  CMP-05   RiskMeter            prob=0                              gauge al 0%
+  CMP-06   RiskMeter            animación al montar               transición visible
+  CMP-07   ShapChart            shap_values vacío                 mensaje o gráfico vacío
+  CMP-08   ShapChart            6 attributions                    6 barras horizontales
+  CMP-09   QuickLogin           Click Estudiante                    localStorage demo_role
+  CMP-10   QuickLogin           Click Admin                         redirect /admin/dashboard
+
+================================================================================
+7. PRUEBAS E2E (Playwright) — FLUJOS POR ROL
+================================================================================
+
+7.1 Estudiante
+--------------
+  E2E-01  Login demo estudiante → /test
+  E2E-02  Completar CAT (mínimo 8 preguntas) → /resultados
+  E2E-03  Ver SHAP y medidor de riesgo en resultados
+  E2E-04  Agendar cita desde resultados → /mis-citas
+  E2E-05  Early stop: respuestas altas → test termina antes
+
+7.2 Psicólogo
+-------------
+  E2E-06  Login demo psicólogo → /psicologo/dashboard
+  E2E-07  Listar estudiantes, filtrar por riesgo Alto
+  E2E-08  Ver detalle estudiante est-1 con historial SHAP
+  E2E-09  Gestionar citas: confirmar pendiente
+  E2E-10  Middleware bloquea /psicologo sin cookie
+
+7.3 Administrador
+-----------------
+  E2E-11  Login demo admin → /admin/dashboard
+  E2E-12  Dashboard muestra gráficos Recharts
+  E2E-13  CRUD pregunta: crear, editar IRT, eliminar
+  E2E-14  Cambiar rol de usuario en /admin/usuarios
+  E2E-15  Middleware bloquea /admin para psicólogo
+
+7.4 Seguridad y navegación
+--------------------------
+  E2E-16  Acceso directo /admin/dashboard sin auth → /auth
+  E2E-17  Cookie demo_role expirada → redirect login
+  E2E-18  API /api/admin/stats sin header → 401
+
+================================================================================
+8. PRUEBAS MANUALES / UAT (Checklist demo académica)
+================================================================================
+
+  [ ] Backend FastAPI arranca en :8000 y GET / retorna healthy
+  [ ] Frontend arranca en :3000 sin errores de consola
+  [ ] QuickLogin funciona para los 3 roles
+  [ ] Test CAT presenta preguntas adaptativas (no repetidas)
+  [ ] Preguntas TAC aparecen cada 4 respuestas
+  [ ] Parada temprana al superar 95% de probabilidad
+  [ ] Resultados muestran prob_ansiedad, prob_depresion, tac_score
+  [ ] Gráfico SHAP muestra top síntomas
+  [ ] Panel psicólogo lista alertas de riesgo alto
+  [ ] Admin dashboard carga stats (mock o real)
+  [ ] Responsive en móvil (375px) y desktop (1280px)
+  [ ] Lint pasa: npm run lint (frontend) y ruff check (backend)
+
+================================================================================
+9. PRUEBAS DE RENDIMIENTO Y CARGA (opcional)
+================================================================================
+
+  PRF-01  POST /predict < 500ms (FastAPI local)
+  PRF-02  POST /predict fallback JS < 100ms
+  PRF-03  GET /api/admin/stats < 2s con 1000 tests
+  PRF-04  Página /test First Contentful Paint < 1.5s
+  PRF-05  Entrenamiento RF inicial < 30s (n=3000)
+
+================================================================================
+10. MATRIZ DE TRAZABILIDAD REQUISITO → PRUEBA
+================================================================================
+
+  Requisito funcional                          Pruebas asociadas
+  ------------------------------------------   ---------------------------
+  RF-01 Motor CAT IRT 2PL                       CAT-01..CAT-14, E2E-02
+  RF-02 Parada temprana 95%                     PRD-05, E2E-05
+  RF-03 Random Forest + SHAP                    ML-01..ML-10, PRD-03
+  RF-04 Control atención TAC                    CAT-12..14, ML-06..07, E2E-02
+  RF-05 Roles admin/psicólogo/estudiante        AUT-01..05, E2E-06..15
+  RF-06 Panel admin estadísticas                ADM-01..08, STA-01..05
+  RF-07 Gestión banco preguntas IRT             QST-01..05, E2E-13
+  RF-08 Citas de contención                     CIT-01..05, E2E-04, E2E-09
+  RF-09 Fallback sin Supabase/FastAPI           DBF-01..03, mocks/*
+  RF-10 Clasificación riesgo Alto/Medio/Bajo    RSK-01..08
+
+================================================================================
+11. DATOS MOCK (carpeta /mocks)
+================================================================================
+
+  Archivo                  Uso en pruebas
+  -----------------------  ------------------------------------------
+  mocks/users.json         USR-02, autenticación demo
+  mocks/questions.json     QST-01, CAT-09..12, E2E-02
+  mocks/estudiantes.json   EST-02..05, FLT-01..08
+  mocks/citas.json         CIT-01..05, E2E-04, E2E-09
+  mocks/admin-stats.json   STA-04, ADM-01..08
+  mocks/predictions.json   PRD-02..08, ML-02..09
+  mocks/profiles.json      perfiles demo QuickLogin
+  mocks/test-rows.json     filas Supabase para aggregateAdminStats
+  mocks/answers.json     payloads POST /api/predict
+
+  Importar en Vitest:
+    import stats from '../../mocks/admin-stats.json';
+
+  Importar en pytest:
+    import json; data = json.load(open('../mocks/predictions.json'))
+
+================================================================================
+12. CONFIGURACIÓN RECOMENDADA DE HERRAMIENTAS
+================================================================================
+
+  Frontend (añadir a package.json):
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
+
+  DevDependencies:
+    vitest, @vitejs/plugin-react, @testing-library/react,
+    @testing-library/jest-dom, jsdom, @playwright/test
+
+  Backend (requirements-dev.txt):
+    pytest, pytest-asyncio, httpx
+
+  Estructura de archivos de prueba:
+    frontend/lib/__tests__/cat.test.ts
+    frontend/lib/__tests__/risk.test.ts
+    frontend/lib/__tests__/aggregateStats.test.ts
+    frontend/lib/__tests__/filters.test.ts
+    frontend/app/api/__tests__/predict.test.ts
+    frontend/components/__tests__/RiskMeter.test.tsx
+    backend/tests/test_ml_service.py
+    backend/tests/test_data_generator.py
+    backend/tests/test_api.py
+    e2e/estudiante.spec.ts
+    e2e/psicologo.spec.ts
+    e2e/admin.spec.ts
+
+================================================================================
+13. CRITERIOS DE ACEPTACIÓN GLOBAL
+================================================================================
+
+  - Cobertura de líneas >= 70% en lib/ y backend/
+  - 0 errores de lint (ESLint + Ruff)
+  - 100% de pruebas E2E de flujos críticos pasando
+  - Fallback mock funcional cuando Supabase/FastAPI no disponibles
+  - Despliegue Vercel (frontend) build exitoso con npm run build
+
+================================================================================
+14. ORDEN DE IMPLEMENTACIÓN SUGERIDO
+================================================================================
+
+  Fase 1 (Semana 1): Configurar Vitest + pytest, mocks en /mocks
+  Fase 2 (Semana 1): Pruebas unitarias lib/cat.ts, lib/risk.ts (core CAT)
+  Fase 3 (Semana 2): Pruebas unitarias backend ml_service.py
+  Fase 4 (Semana 2): Pruebas integración API routes con mocks
+  Fase 5 (Semana 3): Pruebas componentes + Playwright E2E
+  Fase 6 (Semana 3): UAT manual + cobertura SonarCloud
+
+================================================================================
+FIN DEL PLAN DE PRUEBAS
+================================================================================

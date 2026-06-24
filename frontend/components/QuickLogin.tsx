@@ -45,6 +45,7 @@ export default function QuickLogin() {
     localStorage.setItem('demo_profile', JSON.stringify(profile));
     localStorage.setItem('demo_user_id', profile.id);
     localStorage.setItem('demo_logged_in', 'true');
+    document.cookie = `demo_role=${role}; path=/; max-age=86400; SameSite=Lax`;
 
     // 3. Route to target dashboards
     if (role === 'admin') {

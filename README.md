@@ -83,3 +83,28 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 * **SHAP:** Otorga "Inteligencia Artificial Explicable" mostrando en el frontend qué síntomas fueron los detonantes exactos de la evaluación de alto riesgo.
 
 Desarrollado para el **Taller de Investigación** - Universidad Continental.
+
+---
+
+## Calidad y seguridad del código
+
+El repositorio está conectado a **[Aikido](https://app.aikido.dev/repositories/2218116)** para escaneos de seguridad (dependencias, SAST, secretos) y, si lo activas en el panel, **Code Quality** en cada pull request.
+
+Guías en el repo:
+
+- [docs/AIKIDO.md](docs/AIKIDO.md) — configuración en Aikido (recomendado)
+- [docs/SONARQUBE.md](docs/SONARQUBE.md) — SonarCloud opcional + lint local
+
+```bash
+# Lint local (complementa Aikido)
+cd frontend && npm run lint
+cd backend && ruff check .
+```
+
+```bash
+# Lint frontend
+cd frontend && npm run lint
+
+# Lint backend
+cd backend && pip install ruff && ruff check .
+```

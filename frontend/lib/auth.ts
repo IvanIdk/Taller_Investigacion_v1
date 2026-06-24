@@ -1,19 +1,13 @@
 // Auth and Role authorization helpers for Universidad Continental
 import { supabase } from './supabase';
+import type { AppRole, SupabaseRoleRow, UserProfile } from './types/domain';
+import { roleFromSupabaseRow } from './types/domain';
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  nombre: string;
-  apellido: string;
-  facultad: string;
-  carrera: string;
-  edad: number;
-  role?: string;
-}
+const DEMO_AUTH_ENABLED = process.env.NODE_ENV !== 'production';
 
-// Check the role of a user from Supabase
-export async function getUserRole(userId: string): Promise<'admin' | 'psicologo' | 'estudiante' | null> {
+export type { UserProfile };
+
+export async function getUserRole(userId: string): Promise<AppRole | null> {
   try {
     const { data, error } = await supabase
       .from('user_roles')
@@ -22,32 +16,30 @@ export async function getUserRole(userId: string): Promise<'admin' | 'psicologo'
       .single();
 
     if (error || !data) {
-      // Check if there is a local session override for demo purposes
       if (typeof window !== 'undefined') {
-        const demoRole = localStorage.getItem('demo_role');
-        if (demoRole === 'admin' || demoRole === 'psicologo' || demoRole === 'estudiante') {
+        const demoRole = localStorage.getItem('demo_role') as AppRole | null;
+        if (demoRole && ['admin', 'psicologo', 'estudiante'].includes(demoRole)) {
           return demoRole;
         }
       }
       return null;
     }
 
-    const roleData = data.roles as any;
-    if (roleData && roleData.nombre) {
-      return roleData.nombre as 'admin' | 'psicologo' | 'estudiante';
+    const roleData = (data as SupabaseRoleRow).roles;
+    const nombre = roleFromSupabaseRow(roleData);
+    if (nombre) {
+      return nombre;
     }
     return null;
-  } catch (err) {
-    console.error('Error fetching user role:', err);
+  } catch {
     if (typeof window !== 'undefined') {
-      const demoRole = localStorage.getItem('demo_role');
-      if (demoRole) return demoRole as any;
+      const demoRole = localStorage.getItem('demo_role') as AppRole | null;
+      if (demoRole) return demoRole;
     }
     return null;
   }
 }
 
-// Helper to determine role and return profile info
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   try {
     const { data: profile, error } = await supabase
@@ -60,7 +52,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       if (typeof window !== 'undefined') {
         const demoProfile = localStorage.getItem('demo_profile');
         if (demoProfile) {
-          return JSON.parse(demoProfile);
+          return JSON.parse(demoProfile) as UserProfile;
         }
       }
       return null;
@@ -68,35 +60,36 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 
     const role = await getUserRole(userId);
     return {
-      ...profile,
-      role: role || 'estudiante'
-    } as UserProfile;
-  } catch (err) {
-    console.error('Error fetching user profile:', err);
+      ...(profile as UserProfile),
+      role: role ?? 'estudiante',
+    };
+  } catch {
     if (typeof window !== 'undefined') {
       const demoProfile = localStorage.getItem('demo_profile');
-      if (demoProfile) return JSON.parse(demoProfile);
+      if (demoProfile) return JSON.parse(demoProfile) as UserProfile;
     }
     return null;
   }
 }
 
-// Middleware simulation for API Routes: check if request is authorized for a role
-export async function authorizeRole(req: Request, allowedRoles: ('admin' | 'psicologo' | 'estudiante')[]): Promise<{ authorized: boolean; userId?: string; role?: string; error?: string }> {
+export async function authorizeRole(
+  req: Request,
+  allowedRoles: AppRole[]
+): Promise<{ authorized: boolean; userId?: string; role?: AppRole; error?: string }> {
   try {
-    // 1. Get Authorization Header or Cookies
     const authHeader = req.headers.get('Authorization');
-    
-    // For demo purposes, allow role overrides in headers or request query for extreme robustness
-    const demoOverrideHeader = req.headers.get('x-demo-role');
-    const demoUserIdHeader = req.headers.get('x-demo-user-id');
-    
-    if (demoOverrideHeader && allowedRoles.includes(demoOverrideHeader as any)) {
-      return { 
-        authorized: true, 
-        userId: demoUserIdHeader || 'demo-user-id', 
-        role: demoOverrideHeader 
-      };
+
+    if (DEMO_AUTH_ENABLED) {
+      const demoOverrideHeader = req.headers.get('x-demo-role') as AppRole | null;
+      const demoUserIdHeader = req.headers.get('x-demo-user-id');
+
+      if (demoOverrideHeader && allowedRoles.includes(demoOverrideHeader)) {
+        return {
+          authorized: true,
+          userId: demoUserIdHeader ?? 'demo-user-id',
+          role: demoOverrideHeader,
+        };
+      }
     }
 
     if (!authHeader) {
@@ -111,13 +104,13 @@ export async function authorizeRole(req: Request, allowedRoles: ('admin' | 'psic
     }
 
     const role = await getUserRole(user.id);
-    
+
     if (!role || !allowedRoles.includes(role)) {
       return { authorized: false, error: 'Unauthorized role access' };
     }
 
     return { authorized: true, userId: user.id, role };
-  } catch (err) {
+  } catch {
     return { authorized: false, error: 'Internal Auth Error' };
   }
 }

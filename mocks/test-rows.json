@@ -1,0 +1,18 @@
+[
+  {
+    "predictions": { "prob_ansiedad": 0.96, "prob_depresion": 0.88, "tac_score": 100.0 },
+    "profiles": { "facultad": "Ciencias de la Salud", "carrera": "Psicología", "edad": 20 }
+  },
+  {
+    "predictions": { "prob_ansiedad": 0.62, "prob_depresion": 0.41, "tac_score": 75.0 },
+    "profiles": { "facultad": "Ingeniería", "carrera": "Ingeniería de Sistemas", "edad": 21 }
+  },
+  {
+    "predictions": { "prob_ansiedad": 0.15, "prob_depresion": 0.18, "tac_score": 100.0 },
+    "profiles": { "facultad": "Derecho", "carrera": "Derecho", "edad": 22 }
+  },
+  {
+    "predictions": [{ "prob_ansiedad": 0.80, "prob_depresion": 0.55, "tac_score": 50.0 }],
+    "profiles": { "facultad": "Empresa", "carrera": "Administración", "edad": 19 }
+  }
+]

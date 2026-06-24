@@ -8,4 +8,8 @@ __pycache__/
 *.pyc
 backend/models/
 backend/venv/
+backend/coverage.xml
+backend/.coverage
+backend/.pytest_cache/
+frontend/coverage/
 .DS_Store

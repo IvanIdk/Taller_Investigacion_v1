@@ -1,0 +1,32 @@
+[
+  {
+    "id": "usr-1",
+    "email": "admin@continental.edu.pe",
+    "nombre": "Alejandro",
+    "apellido": "Castro Ruiz",
+    "role": "admin",
+    "facultad": "Ingeniería",
+    "carrera": "Ingeniería de Sistemas",
+    "edad": 35
+  },
+  {
+    "id": "usr-2",
+    "email": "bienestar@continental.edu.pe",
+    "nombre": "Dra. María",
+    "apellido": "Mendoza Salcedo",
+    "role": "psicologo",
+    "facultad": "Ciencias de la Salud",
+    "carrera": "Psicología",
+    "edad": 42
+  },
+  {
+    "id": "est-1",
+    "email": "74321980@continental.edu.pe",
+    "nombre": "Sofía",
+    "apellido": "Ramos Gutiérrez",
+    "role": "estudiante",
+    "facultad": "Ciencias de la Salud",
+    "carrera": "Psicología",
+    "edad": 20
+  }
+]

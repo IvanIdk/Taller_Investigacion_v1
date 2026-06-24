@@ -1,0 +1,64 @@
+{
+  "likert_options": [
+    { "text": "Nunca", "value": 0 },
+    { "text": "Varios días", "value": 1 },
+    { "text": "Más de la mitad de los días", "value": 2 },
+    { "text": "Casi todos los días", "value": 3 }
+  ],
+  "tac_correct": { "21": 0, "22": 3, "23": 1, "24": 2 },
+  "escenarios": {
+    "bajo_riesgo": {
+      "test_id": "test-mock-001",
+      "user_id": "est-3",
+      "is_completed": true,
+      "answers": [
+        { "question_id": 1, "category": "ansiedad", "value": 0 },
+        { "question_id": 2, "category": "ansiedad", "value": 1 },
+        { "question_id": 11, "category": "depresion", "value": 0 },
+        { "question_id": 12, "category": "depresion", "value": 1 },
+        { "question_id": 21, "category": "tac", "value": 0 }
+      ]
+    },
+    "riesgo_medio": {
+      "test_id": "test-mock-002",
+      "user_id": "est-2",
+      "is_completed": false,
+      "answers": [
+        { "question_id": 1, "category": "ansiedad", "value": 2 },
+        { "question_id": 3, "category": "ansiedad", "value": 2 },
+        { "question_id": 5, "category": "ansiedad", "value": 1 },
+        { "question_id": 11, "category": "depresion", "value": 2 },
+        { "question_id": 14, "category": "depresion", "value": 1 },
+        { "question_id": 21, "category": "tac", "value": 0 }
+      ]
+    },
+    "early_stop_alto": {
+      "test_id": "test-mock-003",
+      "user_id": "est-1",
+      "is_completed": false,
+      "answers": [
+        { "question_id": 1, "category": "ansiedad", "value": 3 },
+        { "question_id": 2, "category": "ansiedad", "value": 3 },
+        { "question_id": 7, "category": "ansiedad", "value": 3 },
+        { "question_id": 12, "category": "depresion", "value": 3 },
+        { "question_id": 19, "category": "depresion", "value": 3 },
+        { "question_id": 21, "category": "tac", "value": 0 },
+        { "question_id": 22, "category": "tac", "value": 3 }
+      ]
+    },
+    "tac_fallido": {
+      "test_id": "test-mock-004",
+      "user_id": "est-2",
+      "is_completed": true,
+      "answers": [
+        { "question_id": 1, "category": "ansiedad", "value": 1 },
+        { "question_id": 21, "category": "tac", "value": 3 },
+        { "question_id": 22, "category": "tac", "value": 0 }
+      ]
+    },
+    "invalid_empty": {
+      "test_id": null,
+      "answers": []
+    }
+  }
+}
