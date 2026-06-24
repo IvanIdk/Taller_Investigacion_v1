@@ -56,8 +56,14 @@ VERIFICACIÓN POST-DEPLOY
 
 ARCHIVOS DE CONFIGURACIÓN
 -------------------------
-  frontend/vercel.json   Configuración Next.js
-  vercel.json (raíz)     Referencia; usar Root Directory = frontend
+  package.json (raíz)    Delega install/build a frontend/ (postinstall)
+  vercel.json (raíz)     outputDirectory = frontend/.next
+  frontend/vercel.json   Config alternativa si Root Directory = frontend
+
+  RECOMENDADO en Vercel Dashboard → Settings → General:
+    Root Directory = frontend
+  Si usas Root Directory = frontend, el package.json de la raíz no es necesario
+  para el deploy, pero se mantiene por compatibilidad con build desde la raíz.
 
 MOCKS EN PRODUCCIÓN
 -------------------
