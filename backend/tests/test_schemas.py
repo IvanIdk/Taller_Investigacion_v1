@@ -26,4 +26,5 @@ def test_sch_03_prediction_response_fields():
         anx_feature_importances=[0.1] * 20,
         dep_feature_importances=[0.05] * 20,
     )
-    assert resp.prob_ansiedad == 0.5
+    assert resp.prob_ansiedad == pytest.approx(0.5)
+    assert resp.tac_score == pytest.approx(100.0)

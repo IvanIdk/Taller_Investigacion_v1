@@ -1,5 +1,7 @@
 from schemas import AnswerItem
 
+import pytest
+
 import ml_service as ms
 
 
@@ -18,7 +20,7 @@ def test_ml_02_empty_answers_low_probability():
     result = ms.predict([])
     assert result.prob_ansiedad < 0.5
     assert result.prob_depresion < 0.5
-    assert result.tac_score == 100.0
+    assert result.tac_score == pytest.approx(100.0)
 
 
 def test_ml_03_high_anxiety_symptoms():
@@ -41,7 +43,7 @@ def test_ml_06_tac_score_all_correct():
         AnswerItem(question_id=24, category="tac", value=2),
     ]
     result = ms.predict(answers)
-    assert result.tac_score == 100.0
+    assert result.tac_score == pytest.approx(100.0)
 
 
 def test_ml_07_tac_score_all_incorrect():
@@ -50,7 +52,7 @@ def test_ml_07_tac_score_all_incorrect():
         AnswerItem(question_id=22, category="tac", value=0),
     ]
     result = ms.predict(answers)
-    assert result.tac_score == 0.0
+    assert result.tac_score == pytest.approx(0.0)
 
 
 def test_ml_08_model_info_accuracy_range():
