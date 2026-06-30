@@ -86,6 +86,18 @@ Desarrollado para el **Taller de Investigación** - Universidad Continental.
 
 ---
 
+## Documentación del proyecto (estructura académica + IA)
+
+Índice maestro para Cursor, Cloud Agents y revisión ISO:
+
+- **[docs/ESTRUCTURA_PROYECTO.md](docs/ESTRUCTURA_PROYECTO.md)** — estado del arte, planificación, diseño, desarrollo ISO, mantenimiento
+- [Estadado_de_Arte/README.md](Estadado_de_Arte/README.md) — referencias bibliográficas
+- [diseno/README.md](diseno/README.md) — mockups y mapa de pantallas
+- [planificacion/plan-de-pruebas.txt](planificacion/plan-de-pruebas.txt) — plan ISO 29119
+- [docs/DESARROLLO_ISO.md](docs/DESARROLLO_ISO.md) — ISO 9001, 25000, 29119, 27001
+- [docs/PRUEBAS.md](docs/PRUEBAS.md) — pruebas automatizadas implementadas
+- [docs/VERCEL.md](docs/VERCEL.md) — despliegue en Vercel (Root Directory = `frontend`)
+
 ## Calidad y seguridad del código
 
 El repositorio está conectado a **[Aikido](https://app.aikido.dev/repositories/2218116)** para escaneos de seguridad (dependencias, SAST, secretos) y, si lo activas en el panel, **Code Quality** en cada pull request.
@@ -93,7 +105,7 @@ El repositorio está conectado a **[Aikido](https://app.aikido.dev/repositories/
 Guías en el repo:
 
 - [docs/AIKIDO.md](docs/AIKIDO.md) — configuración en Aikido (recomendado)
-- [docs/SONARQUBE.md](docs/SONARQUBE.md) — SonarCloud opcional + lint local
+- [docs/SONARQUBE.md](docs/SONARQUBE.md) — SonarCloud + cobertura CI
 
 ```bash
 # Lint local (complementa Aikido)
