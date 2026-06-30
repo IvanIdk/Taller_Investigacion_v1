@@ -1,7 +1,27 @@
 ================================================================================
   PLAN DE PRUEBAS — Sistema de Diagnóstico Predictivo Adaptativo (CAT)
   Universidad Continental
-  Versión: 1.0 | Fecha: 2026-06-23
+  Versión: 1.1 | Fecha: 2026-06-30
+  Norma de referencia: ISO/IEC/IEEE 29119
+================================================================================
+
+ESTADO DE IMPLEMENTACIÓN (actualizado 2026-06-30)
+-------------------------------------------------
+  Ver detalle en docs/PRUEBAS.md y CI .github/workflows/sonar.yml
+
+  [x] Fase 1: Vitest + pytest configurados, mocks en /mocks
+  [x] Fase 2: Unitarias lib/cat.ts, lib/risk.ts, aggregateStats, filters
+  [x] Fase 3: Unitarias backend ml_service, data_generator, schemas
+  [x] Fase 4: Integración API backend (test_api.py)
+  [x] Fase 6 (parcial): UAT checklist §8, cobertura SonarCloud en CI
+  [ ] Fase 4 (pendiente): Integración API routes Next.js (/api/*)
+  [ ] Fase 5: Componentes React + Playwright E2E
+
+  Cobertura actual (local):
+    - frontend/lib/: ~87% líneas (lcov.info)
+    - backend/: ~98% líneas (coverage.xml)
+  Tests: 43 Vitest + 23 pytest (incl. estrés)
+
 ================================================================================
 
 1. OBJETIVO
@@ -15,8 +35,8 @@ Alcance:
   - Backend: ml_service.py, data_generator.py, schemas.py, main.py
   - Datos mock: carpeta /mocks (fallback sin Supabase ni FastAPI)
 
-Estado actual: NO existen archivos de prueba automatizados. Este documento
-define el plan completo a implementar.
+Este documento define el plan completo ISO 29119. La ejecución automatizada
+implementada se documenta en docs/PRUEBAS.md.
 
 ================================================================================
 2. ESTRATEGIA DE PRUEBAS

@@ -9,18 +9,15 @@ PRE-REQUISITOS
   - Repositorio en GitHub/GitLab/Bitbucket (recomendado)
   - Build local exitoso: cd frontend && npm run build  (verificado OK)
 
-CONFIGURACIÓN DEL PROYECTO (OBLIGATORIO)
-----------------------------------------
-  1. Ir a https://vercel.com/new
-  2. Importar el repositorio Ivanldk/Taller_Investigacion_v1
-  3. *** Root Directory = frontend ***  (Settings → General si ya existe el proyecto)
-  4. Framework Preset: Next.js (detectado automáticamente)
-  5. Build Command: npm run build
-  6. Install Command: npm ci
-  7. NO usar vercel.json en la raíz del repo (solo frontend/vercel.json)
-
-  Si Root Directory queda vacío, el build FALLA porque next.config.ts
-  está en frontend/, no en la raíz.
+CONFIGURACIÓN DEL PROYECTO (Vercel Services — raíz del repo)
+-------------------------------------------------------------
+  1. Importar repo en https://vercel.com/new
+  2. Root Directory: VACÍO (raíz del repo, NO "frontend")
+  3. vercel.json en raíz define dos servicios:
+       - frontend (Next.js)
+       - backend (FastAPI) en /api/backend/*
+  4. Si la UI pide vercel.json → commitear y pulsar Refresh
+  5. Ver docs/VERCEL.md para detalle completo
 
 VARIABLES DE ENTORNO (Settings → Environment Variables)
 -------------------------------------------------------

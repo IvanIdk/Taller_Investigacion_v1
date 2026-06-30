@@ -1,8 +1,22 @@
 # Análisis de calidad con SonarQube / SonarCloud
 
-> **Nota:** El repositorio principal de validación en la nube es **[Aikido](https://app.aikido.dev/repositories/2218116)**. Ver [AIKIDO.md](./AIKIDO.md). SonarCloud es opcional y puede integrarse con Aikido si lo necesitas.
+> **Nota:** El repositorio también usa **[Aikido](https://app.aikido.dev/repositories/2218116)** (SCA, SAST, secretos). Ver [AIKIDO.md](./AIKIDO.md). SonarCloud complementa con cobertura, duplicación y deuda técnica.
 
-Este proyecto incluye configuración para validar código limpio, factorizado y sin duplicación crítica.
+Este proyecto incluye configuración para validar código limpio, factorizado y con cobertura de pruebas trazable a ISO 29119.
+
+## Cobertura actual (local)
+
+| Área | Herramienta | Cobertura líneas | Reporte |
+|------|-------------|------------------|---------|
+| `frontend/lib/` | Vitest + v8 | ~87% | `frontend/coverage/lcov.info` |
+| `backend/` | pytest-cov | ~98% | `backend/coverage.xml` |
+
+Ejecutar antes de push:
+
+```bash
+cd frontend && npm run test:coverage
+cd backend  && pytest --cov=. --cov-report=xml:coverage.xml
+```
 
 ## Requisitos
 
@@ -11,11 +25,13 @@ Este proyecto incluye configuración para validar código limpio, factorizado y 
 
 ## Análisis en CI (GitHub Actions)
 
-El workflow `.github/workflows/sonar.yml` ejecuta en cada push/PR:
+El workflow `.github/workflows/sonar.yml` ejecuta en cada push/PR a `main`, `master`, `develop`:
 
-1. `npm run lint` en `frontend/`
-2. `ruff check` en `backend/`
-3. Escaneo SonarCloud
+1. `npm ci` + `npm run lint` (frontend)
+2. `npm run test:coverage` → genera `lcov.info`
+3. `ruff check` (backend)
+4. `pytest --cov` → genera `coverage.xml`
+5. Escaneo SonarCloud
 
 ### Secrets y variables en GitHub
 
@@ -27,6 +43,48 @@ El workflow `.github/workflows/sonar.yml` ejecuta en cada push/PR:
 
 Crear el proyecto en SonarCloud con la misma clave que `sonar.projectKey` en `sonar-project.properties`.
 
+### Primer análisis (checklist)
+
+1. Crear proyecto `sistema-prediccion-uc` en SonarCloud
+2. Añadir `SONAR_TOKEN` y `SONAR_ORGANIZATION` en GitHub → Settings → Secrets and variables
+3. Push a `main` o abrir PR — el workflow sube cobertura automáticamente
+4. En SonarCloud → Quality Gate: activar condiciones de la tabla siguiente
+
+## Quality Gate recomendado (ISO 25010 / 29119)
+
+Configurar en SonarCloud → **Quality Gates**:
+
+| Condición | Umbral | Justificación |
+|-----------|--------|---------------|
+| Cobertura en código nuevo | ≥ 60% | Objetivo incremental SQuaRE |
+| Duplicación | < 3% | Mantenibilidad |
+| Bugs | 0 bloqueantes | Fiabilidad |
+| Vulnerabilidades | 0 bloqueantes | ISO 27001 |
+| Code smells | Aceptable en archivos < 300 LOC | Deuda técnica controlada |
+| Security Hotspots | Revisados | Aikido + Sonar |
+
+Archivos con refactor aplicado (menor duplicación):
+
+| Área | Módulos |
+|------|---------|
+| Frontend API | `lib/api/errors.ts`, `withDbFallback`, `routeAuth` |
+| Riesgo clínico | `lib/risk.ts` + `lib/constants/risk.ts` |
+| Estadísticas admin | `lib/admin/aggregateStats.ts` |
+| Filtros estudiantes | `lib/students/filters.ts` |
+| Auth páginas | `lib/hooks/useRequireRole.ts` |
+| Backend ML | `constants`, `data_generator`, `ml_service`, `schemas` |
+
+## Configuración del proyecto
+
+`sonar-project.properties`:
+
+- **Fuentes:** `frontend/`, `backend/`
+- **Exclusiones:** `node_modules`, `.next`, modelos entrenados, `supabase/`
+- **Tests:** `**/*.test.ts`, `backend/tests/test_*.py`
+- **Cobertura TS:** `frontend/coverage/lcov.info`
+- **Cobertura Python:** `backend/coverage.xml`
+- **Quality profile:** Sonar way (TypeScript + Python)
+
 ## Análisis local con Docker
 
 ```bash
@@ -35,38 +93,21 @@ docker run -d --name sonarqube -p 9000:9000 sonarqube:lts-community
 
 Tras iniciar sesión en `http://localhost:9000`, generar un token y ejecutar:
 
-```bash
-docker run --rm \
-  -e SONAR_HOST_URL="http://host.docker.internal:9000" \
-  -e SONAR_TOKEN="tu_token" \
-  -v "%cd%:/usr/src" \
+```powershell
+# PowerShell — sustituir la ruta por la del repositorio
+docker run --rm `
+  -e SONAR_HOST_URL="http://host.docker.internal:9000" `
+  -e SONAR_TOKEN="tu_token" `
+  -v "c:\Sistema_prediccion:/usr/src" `
   sonarsource/sonar-scanner-cli
 ```
 
-En Windows PowerShell, sustituir `%cd%` por la ruta absoluta del repositorio.
+## Trazabilidad pruebas → Sonar
 
-## Estructura de calidad del código
-
-| Área | Mejora aplicada |
-|------|-----------------|
-| Frontend API | `lib/api/errors.ts`, `withDbFallback`, `routeAuth` |
-| Riesgo clínico | `lib/risk.ts` + `lib/constants/risk.ts` (único umbral 0.75 / 0.40) |
-| Estadísticas admin | `lib/admin/aggregateStats.ts` |
-| Filtros estudiantes | `lib/students/filters.ts` |
-| Auth páginas | `lib/hooks/useRequireRole.ts` |
-| Backend ML | Módulos `constants`, `data_generator`, `ml_service`, `schemas` |
-
-## Quality Gate recomendado
-
-En SonarCloud, activar reglas para:
-
-- Duplicación de código &lt; 3%
-- Cobertura de tests &gt; 60% (añadir tests progresivamente)
-- 0 vulnerabilidades y 0 bugs bloqueantes
-- Deuda técnica razonable en archivos &gt; 300 LOC
+Ver [PRUEBAS.md](./PRUEBAS.md) para casos ID (CAT-*, RSK-*, ML-*, PRF-*) y matriz requisito→prueba.
 
 ## Próximos pasos
 
-1. ~~Añadir tests unitarios (`lib/risk.ts`, `aggregateStats.ts`, `data_generator.py`)~~ — ver [PRUEBAS.md](./PRUEBAS.md)
-2. ~~Generar cobertura: `npm test -- --coverage` y enlazar `lcov.info` en Sonar~~ — configurado en CI
-3. Conectar el repositorio en SonarCloud y ejecutar el primer análisis en `main`
+1. Conectar SonarCloud y ejecutar primer análisis en `main`
+2. Subir umbral de cobertura a 70% cuando existan pruebas `/api/*` y E2E
+3. Añadir pruebas `routeAuth.ts` y `withDbFallback.ts` (plan DBF-*, AUT-*)

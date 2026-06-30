@@ -1,3 +1,5 @@
+import os
+
 FEATURE_NAMES = [
     "Nerviosismo / Ansiedad (P1)",
     "Preocupación incontrolable (P2)",
@@ -37,6 +39,6 @@ RF_PARAMS = {
     "n_jobs": -1,
 }
 
-SYNTHETIC_SAMPLES = 3000
+SYNTHETIC_SAMPLES = int(os.getenv("SYNTHETIC_SAMPLES", "500" if os.getenv("VERCEL") else "3000"))
 SYNTHETIC_SEED = 42
 CLINICAL_CUTOFF_MEAN = 1.5

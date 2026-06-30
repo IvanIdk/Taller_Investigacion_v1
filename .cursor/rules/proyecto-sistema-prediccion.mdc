@@ -1,0 +1,32 @@
+---
+description: Estructura académica del Sistema CAT UC — estado del arte, planificación, diseño, ISO y pruebas
+globs:
+alwaysApply: true
+---
+
+# Sistema de Predicción UC — contexto para agentes IA
+
+Antes de implementar cambios, consultar el índice maestro: `docs/ESTRUCTURA_PROYECTO.md`.
+
+## Estructura obligatoria del proyecto
+
+1. **Estado del arte** → `Estadado_de_Arte/` (PDFs + README)
+2. **Planificación** → `planificacion/plan-de-pruebas.txt`, `docs/PRUEBAS.md`
+3. **Diseño** → `diseno/README.md`, `frontend/app/`, `components/`
+4. **Desarrollo ISO** → `docs/DESARROLLO_ISO.md` (9001, 25000, 29119, 27001)
+5. **Mantenimiento** → pruebas Vitest/pytest, CI en `.github/workflows/sonar.yml`, SonarCloud
+
+## Calidad de código
+
+- Frontend lint: `cd frontend && npm run lint`
+- Backend lint: `cd backend && ruff check .`
+- Tests: `npm run test:coverage` (frontend), `pytest --cov=.` (backend)
+- No commitear secretos; Aikido escanea el repo
+
+## Convenciones
+
+- Lógica clínica en `lib/risk.ts`, `lib/constants/risk.ts` (umbrales 0.75 / 0.40)
+- API compartida: `lib/api/errors.ts`, `withDbFallback.ts`, `routeAuth.ts`
+- Mocks en `/mocks` para fallback sin Supabase
+
+Al añadir pruebas, actualizar `docs/PRUEBAS.md` y la sección de estado en el plan de pruebas.

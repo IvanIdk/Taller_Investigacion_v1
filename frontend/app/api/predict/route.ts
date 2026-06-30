@@ -1,9 +1,26 @@
 // API Route: /api/predict
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { getProbability } from '@/lib/cat';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+function resolvePredictUrl(): string {
+  const internal = process.env.BACKEND_INTERNAL_URL?.replace(/\/$/, '');
+  if (internal) {
+    return `${internal}/predict`;
+  }
+
+  const publicBackend = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, '');
+  if (publicBackend) {
+    return `${publicBackend}/predict`;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/backend/predict`;
+  }
+
+  return 'http://localhost:8000/predict';
+}
+
+const PREDICT_URL = resolvePredictUrl();
 const STOP_THRESHOLD = parseFloat(process.env.STOP_THRESHOLD || '95') / 100.0;
 
 // Symptom names for SHAP fallback
@@ -45,11 +62,11 @@ export async function POST(req: Request) {
     
     // 1. Try to fetch from FastAPI microservice
     try {
-      const response = await fetch(`${BACKEND_URL}/predict`, {
+      const response = await fetch(PREDICT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ answers }),
-        signal: AbortSignal.timeout(3000), // 3-second timeout
+        signal: AbortSignal.timeout(10000),
       });
 
       if (response.ok) {
@@ -80,15 +97,14 @@ export async function POST(req: Request) {
       answers.forEach(a => {
         if (a.category === 'tac') {
           tac_total++;
-          if (a.value === (TAC_CORRECT as any)[a.question_id]) {
+          if (a.value === (TAC_CORRECT as Record<number, number>)[a.question_id]) {
             tac_correct++;
           }
         }
       });
       const tac_score = tac_total > 0 ? (tac_correct / tac_total) * 100 : 100;
 
-      // Generate SHAP attributions
-      const shap_values: any[] = [];
+      const shap_values: { feature_name: string; attribution: number }[] = [];
       answers.forEach(a => {
         const qid = a.question_id;
         const val = a.value;
@@ -114,10 +130,8 @@ export async function POST(req: Request) {
     const early_stop = predictionData.prob_ansiedad >= STOP_THRESHOLD || predictionData.prob_depresion >= STOP_THRESHOLD;
     const final_completed = is_completed || early_stop;
 
-    // 3. Save to Supabase if test_id exists and Supabase is accessible
     if (test_id) {
       try {
-        // Update test status if completed
         if (final_completed) {
           await supabase
             .from('tests')
@@ -125,7 +139,6 @@ export async function POST(req: Request) {
             .eq('id', test_id);
         }
 
-        // Insert prediction log
         const { data: pred, error: predErr } = await supabase
           .from('predictions')
           .insert({
@@ -137,9 +150,8 @@ export async function POST(req: Request) {
           .select()
           .single();
 
-        // Save SHAP explanations
         if (!predErr && pred && predictionData.shap_values.length > 0) {
-          const shapInserts = predictionData.shap_values.map((s: any) => ({
+          const shapInserts = predictionData.shap_values.map((s: { feature_name: string; attribution: number }) => ({
             prediction_id: pred.id,
             feature_name: s.feature_name,
             attribution: s.attribution

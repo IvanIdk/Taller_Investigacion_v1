@@ -1,55 +1,74 @@
-# Despliegue en Vercel
+# Despliegue en Vercel (frontend + backend)
 
-Frontend Next.js desplegado desde la carpeta `frontend/`.
+Monorepo con **Vercel Services**: Next.js en `frontend/` y FastAPI en `backend/`.
 
-## Configuración obligatoria en Vercel Dashboard
+## Archivo clave
 
-1. [vercel.com/new](https://vercel.com/new) → importar `Ivanldk/Taller_Investigacion_v1`
-2. **Root Directory:** `frontend` ← crítico; sin esto el build falla
-3. **Framework Preset:** Next.js (auto)
-4. **Build Command:** `npm run build` (default)
-5. **Install Command:** `npm ci` (default)
+`vercel.json` en la **raíz** del repo (requerido por Vercel para multi-servicio):
 
-## Variables de entorno
-
-| Variable | Requerida | Descripción |
-|----------|-----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Opcional | URL Supabase; sin ella usa mocks |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Opcional | Anon key pública |
-| `NEXT_PUBLIC_BACKEND_URL` | Opcional | FastAPI; sin ella usa fallback JS |
-| `STOP_THRESHOLD` | Opcional | Parada temprana CAT (default 95) |
-
-Sin Supabase ni backend, la app funciona en **modo demo** con datos de `/mocks`.
-
-## Despliegue automático (Git)
-
-Cada push a `main` dispara un deploy si el proyecto está conectado en Vercel.
-
-## Despliegue manual (CLI)
-
-```powershell
-cd frontend
-npx vercel login
-npx vercel --prod
+```json
+{
+  "services": {
+    "frontend": { "root": "frontend", "framework": "nextjs" },
+    "backend": { "root": "backend", "entrypoint": "main:app" }
+  },
+  "rewrites": [
+    { "source": "/api/backend(/.*)?", "destination": { "service": "backend" } },
+    { "source": "/(.*)", "destination": { "service": "frontend" } }
+  ]
+}
 ```
+
+## Configuración en Vercel Dashboard
+
+1. Importar el repo en [vercel.com/new](https://vercel.com/new)
+2. **Root Directory:** dejar vacío (raíz del repo) — el `vercel.json` define los servicios
+3. Vercel detectará `frontend` (Next.js) y `backend` (FastAPI Web Service)
+4. Pulsa **Refresh** si la UI pide el `vercel.json`
+
+## Rutas públicas
+
+| URL | Servicio |
+|-----|----------|
+| `/`, `/test`, `/admin/*`, … | frontend (Next.js) |
+| `/api/predict`, `/api/admin/*` | frontend (API Routes Next.js) |
+| `/api/backend/` | backend FastAPI (health) |
+| `/api/backend/predict` | backend ML |
+
+El frontend llama al backend vía binding interno `BACKEND_INTERNAL_URL` (automático) o, en fallback, `/api/backend/predict`.
+
+## Variables de entorno (opcionales)
+
+| Variable | Servicio | Descripción |
+|----------|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | frontend | Supabase; sin ella → mocks |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | frontend | Anon key |
+| `NEXT_PUBLIC_BACKEND_URL` | frontend | Override URL backend externo |
+| `STOP_THRESHOLD` | frontend | Parada temprana CAT (default 95) |
+| `SYNTHETIC_SAMPLES` | backend | Muestras entrenamiento (default 500 en Vercel) |
+
+`BACKEND_INTERNAL_URL` lo inyecta Vercel automáticamente vía binding — no configurar manualmente.
 
 ## Verificación post-deploy
 
-- [ ] Landing `/` carga
-- [ ] `/auth` — QuickLogin (solo demo en no-producción para roles)
-- [ ] Login Estudiante → `/test` con mocks
-- [ ] Login Admin → `/admin/dashboard`
-- [ ] `npm run build` pasa en local
+- [ ] `/` — landing
+- [ ] `/auth` — QuickLogin
+- [ ] `/api/backend/` — `{ "status": "healthy", ... }`
+- [ ] `/test` → predicción ML (Random Forest, no solo fallback JS)
+
+## Despliegue por Git
+
+```powershell
+git add vercel.json backend/main.py frontend/app/api/predict/route.ts
+git commit -m "Añade vercel.json multi-servicio frontend + FastAPI backend"
+git push origin main
+```
 
 ## Errores frecuentes
 
-| Error | Solución |
-|-------|----------|
-| Build falla: no encuentra `next.config.ts` | Root Directory = `frontend` |
-| Lockfile / turbopack warning | No usar `package-lock.json` en raíz; solo `frontend/package-lock.json` |
-| API routes 500 | Normal sin Supabase; deben responder con fallback mock |
-
-## Archivos
-
-- `frontend/vercel.json` — config del proyecto
-- `planificacion/despliegue-vercel.txt` — checklist extendido
+| Problema | Solución |
+|----------|----------|
+| UI pide `vercel.json` | Crear/commitear `vercel.json` en raíz y Refresh |
+| Root Directory = `frontend` | Quitarlo; debe ser raíz del repo |
+| Backend 404 en `/api/backend/predict` | Verificar `main.py` con prefijo `/api/backend` |
+| ML lento en cold start | Normal; usa 500 muestras en Vercel (`SYNTHETIC_SAMPLES`) |

@@ -1,7 +1,7 @@
 # FastAPI Backend for Continental Predictive Diagnosis
 import logging
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ml_service import get_model_info, load_or_train_models, predict, train_models
@@ -24,14 +24,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.on_event("startup")
-async def startup_event():
-    load_or_train_models()
-    logger.info("Random Forest prediction service ready!")
+router = APIRouter()
 
 
-@app.get("/")
+@router.get("/")
 def read_root():
     return {
         "status": "healthy",
@@ -42,20 +38,32 @@ def read_root():
     }
 
 
-@app.post("/predict", response_model=PredictionResponse)
+@router.post("/predict", response_model=PredictionResponse)
 def predict_endpoint(request: PredictionRequest):
     return predict(request.answers)
 
 
-@app.get("/model-info")
+@router.get("/model-info")
 def model_info():
     return get_model_info()
 
 
-@app.post("/retrain")
+@router.post("/retrain")
 def retrain_models():
     try:
         train_models()
         return {"status": "success", "message": "Models retrained successfully"}
     except OSError as exc:
         return {"status": "error", "message": str(exc)}
+
+
+# Rutas raíz (local + binding interno Vercel)
+app.include_router(router)
+# Rutas públicas vía rewrite /api/backend/*
+app.include_router(router, prefix="/api/backend")
+
+
+@app.on_event("startup")
+async def startup_event():
+    load_or_train_models()
+    logger.info("Random Forest prediction service ready!")

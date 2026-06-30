@@ -1,6 +1,6 @@
 # Pruebas automatizadas — Sistema de Predicción UC
 
-Documentación de las pruebas **implementadas** para calidad de software y Quality Gate de SonarQube. Se aplicaron solo los niveles necesarios para validar la lógica crítica y generar cobertura; no se incluyeron E2E ni pruebas de componentes UI en esta fase.
+Documentación de las pruebas **implementadas** para calidad de software (ISO 29119) y Quality Gate de SonarCloud. Índice general: [ESTRUCTURA_PROYECTO.md](./ESTRUCTURA_PROYECTO.md).
 
 ## Resumen ejecutivo
 
