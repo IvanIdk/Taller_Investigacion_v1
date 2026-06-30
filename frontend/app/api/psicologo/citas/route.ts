@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
 // Persistent-in-memory Mock Database for appointments during demo evaluation
-let MOCK_CITAS = [
+const MOCK_CITAS = [
   {
     id: 1,
     estudiante_id: "est-1",

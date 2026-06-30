@@ -57,5 +57,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION }}
-            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY || 'sistema-prediccion-uc' }}
+            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION || 'ivanldk' }}
+            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY || 'Ivanldk_Taller_Investigacion_v1' }}

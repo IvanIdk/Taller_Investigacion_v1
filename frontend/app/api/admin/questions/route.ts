@@ -10,7 +10,7 @@ const DEFAULT_OPTIONS = [
 ];
 
 // Persistent in-memory mock bank of questions for admin CRUD demo
-let MOCK_QUESTIONS = [
+const MOCK_QUESTIONS = [
   { id: 1, text: "¿Se ha sentido nervioso/a, ansioso/a o con los nervios de punta?", category: "ansiedad", type: "cat", a: 1.8, b: -0.5, c: 0.0, active: true, options: DEFAULT_OPTIONS },
   { id: 2, text: "¿No ha sido capaz de parar o controlar su preocupación?", category: "ansiedad", type: "cat", a: 2.2, b: 0.2, c: 0.0, active: true, options: DEFAULT_OPTIONS },
   { id: 3, text: "¿Se ha preocupado demasiado por diferentes cosas?", category: "ansiedad", type: "cat", a: 1.5, b: -0.8, c: 0.0, active: true, options: DEFAULT_OPTIONS },

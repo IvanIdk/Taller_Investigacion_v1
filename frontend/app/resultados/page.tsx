@@ -1,6 +1,7 @@
 // Page: Results (app/resultados/page.tsx)
 'use client';
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import RiskMeter from '@/components/RiskMeter';
 import ShapChart from '@/components/ShapChart';
@@ -230,12 +231,12 @@ export default function ResultadosPage() {
 
       {/* Footer Go Back Home */}
       <section className="max-w-4xl mx-auto w-full flex justify-center mt-4 relative z-10">
-        <a
+        <Link
           href="/"
           className="text-xs font-semibold text-gray-400 hover:text-white transition-colors bg-white/3 border border-white/5 hover:border-white/10 px-5 py-2.5 rounded-xl cursor-pointer"
         >
           Regresar a Inicio
-        </a>
+        </Link>
       </section>
     </div>
   );

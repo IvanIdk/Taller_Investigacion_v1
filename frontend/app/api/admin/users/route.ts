@@ -5,7 +5,7 @@ import { badRequest, internalError, notFound } from '@/lib/api/errors';
 import type { AppRole, SupabaseRoleRow } from '@/lib/types/domain';
 import { roleFromSupabaseRow } from '@/lib/types/domain';
 
-let MOCK_USERS = [
+const MOCK_USERS = [
   { id: 'usr-1', email: 'admin@continental.edu.pe', nombre: 'Alejandro', apellido: 'Castro Ruiz', role: 'admin' as AppRole, facultad: 'Ingeniería', carrera: 'Ingeniería de Sistemas', edad: 35 },
   { id: 'usr-2', email: 'bienestar@continental.edu.pe', nombre: 'Dra. María', apellido: 'Mendoza Salcedo', role: 'psicologo' as AppRole, facultad: 'Ciencias de la Salud', carrera: 'Psicología', edad: 42 },
   { id: 'est-1', email: '74321980@continental.edu.pe', nombre: 'Sofía', apellido: 'Ramos Gutiérrez', role: 'estudiante' as AppRole, facultad: 'Ciencias de la Salud', carrera: 'Psicología', edad: 20 },

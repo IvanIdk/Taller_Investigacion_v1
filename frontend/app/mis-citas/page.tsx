@@ -106,7 +106,7 @@ export default function MisCitasPage() {
                 </p>
                 {cita.notas && (
                   <p className="text-xs text-gray-500 mt-3 border-l-2 border-indigo-500/30 pl-3 italic">
-                    "{cita.notas}"
+                    &ldquo;{cita.notas}&rdquo;
                   </p>
                 )}
               </div>

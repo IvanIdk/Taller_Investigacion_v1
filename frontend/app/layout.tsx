@@ -1,6 +1,7 @@
 // Component: RootLayout (app/layout.tsx)
 'use client';
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import './globals.css';
 
 export default function RootLayout({
@@ -66,7 +67,7 @@ export default function RootLayout({
             <nav className="hidden lg:flex items-center gap-6 text-sm font-semibold">
               {role === 'estudiante' && (
                 <>
-                  <a href="/" className="text-gray-300 hover:text-white transition-colors">Inicio</a>
+                  <Link href="/" className="text-gray-300 hover:text-white transition-colors">Inicio</Link>
                   <a href="/test" className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors bg-indigo-500/10 px-3.5 py-1.5 rounded-xl border border-indigo-500/20">Realizar Test</a>
                   <a href="/resultados" className="text-gray-300 hover:text-white transition-colors">Mis Resultados</a>
                   <a href="/mis-citas" className="text-gray-300 hover:text-white transition-colors">Mis Citas</a>

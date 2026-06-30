@@ -1,10 +1,13 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+// Monorepo: Vercel fija outputFileTracingRoot en la raíz del repo; turbopack.root debe coincidir.
+const repoRoot = path.join(__dirname, "..");
+
 const nextConfig: NextConfig = {
-  // Evita conflicto cuando existe package.json en la raíz del monorepo
+  outputFileTracingRoot: repoRoot,
   turbopack: {
-    root: path.join(__dirname),
+    root: repoRoot,
   },
 };
 

@@ -2,20 +2,19 @@ import { authorizeRole } from '@/lib/auth';
 import type { AppRole } from '@/lib/types/domain';
 import { unauthorized } from '@/lib/api/errors';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
-
 export async function requireApiRole(
   req: Request,
   allowedRoles: AppRole[]
 ): Promise<{ ok: true; userId: string; role: AppRole } | { ok: false; response: Response }> {
+  const isDev = process.env.NODE_ENV === 'development';
   const demoRole = req.headers.get('x-demo-role') as AppRole | null;
   const demoUserId = req.headers.get('x-demo-user-id') ?? 'demo-user-id';
 
-  if (demoRole && allowedRoles.includes(demoRole)) {
+  if (isDev && demoRole && allowedRoles.includes(demoRole)) {
     return { ok: true, userId: demoUserId, role: demoRole };
   }
 
-  if (IS_DEV && !req.headers.get('Authorization')) {
+  if (isDev && !req.headers.get('Authorization') && !demoRole) {
     const fallbackRole = allowedRoles.find((r) => r === 'admin') ?? allowedRoles[0];
     return { ok: true, userId: demoUserId, role: fallbackRole };
   }

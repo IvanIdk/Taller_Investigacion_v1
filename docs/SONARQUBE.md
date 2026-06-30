@@ -39,7 +39,8 @@ El workflow `.github/workflows/sonar.yml` ejecuta en cada push/PR a `main`, `mas
 |--------|------|-------------|
 | `SONAR_TOKEN` | Secret | Token de SonarCloud |
 | `SONAR_ORGANIZATION` | Variable | Organización en SonarCloud |
-| `SONAR_PROJECT_KEY` | Variable (opcional) | Por defecto: `sistema-prediccion-uc` |
+| `SONAR_PROJECT_KEY` | Variable (opcional) | Por defecto: `Ivanldk_Taller_Investigacion_v1` |
+| `SONAR_ORGANIZATION` | Variable (opcional) | Por defecto: `ivanldk` |
 
 Crear el proyecto en SonarCloud con la misma clave que `sonar.projectKey` en `sonar-project.properties`.
 
