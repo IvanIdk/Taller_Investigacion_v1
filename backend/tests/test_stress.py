@@ -2,11 +2,9 @@ import time
 
 import pytest
 
+import ml_service as ms
 from data_generator import generate_synthetic_dataset
 from schemas import AnswerItem
-
-import ml_service as ms
-
 
 STRESS_ITERATIONS = 50
 LARGE_DATASET = 2000

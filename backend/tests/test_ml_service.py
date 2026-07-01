@@ -1,8 +1,7 @@
-from schemas import AnswerItem
-
 import pytest
 
 import ml_service as ms
+from schemas import AnswerItem
 
 
 def _high_symptom_answers() -> list[AnswerItem]:

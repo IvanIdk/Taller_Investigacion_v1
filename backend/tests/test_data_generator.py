@@ -1,6 +1,4 @@
-import time
 
-import pytest
 
 from data_generator import generate_synthetic_dataset
 

@@ -1,9 +1,6 @@
 from fastapi.testclient import TestClient
 
 from main import app
-from schemas import AnswerItem
-
-import ml_service as ms
 
 
 def test_api_health():
