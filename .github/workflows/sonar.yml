@@ -56,6 +56,9 @@ jobs:
           test -f frontend/coverage/lcov.info || (echo "Missing frontend/coverage/lcov.info" && exit 1)
           test -f backend/coverage.xml || (echo "Missing backend/coverage.xml" && exit 1)
 
+      - name: Fix coverage paths for SonarCloud monorepo
+        run: node scripts/fix-sonar-coverage.mjs
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v4.0.0
         env:

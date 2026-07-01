@@ -1,7 +1,8 @@
 // Auth and Role authorization helpers for Universidad Continental
 import { supabase } from './supabase';
 import type { AppRole, SupabaseRoleRow, UserProfile } from './types/domain';
-import { roleFromSupabaseRow } from './types/domain';
+import { isAppRole, roleFromSupabaseRow } from './types/domain';
+import { parseJsonSafe } from './safeJson';
 
 const DEMO_AUTH_ENABLED = process.env.NODE_ENV !== 'production';
 
@@ -52,7 +53,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       if (typeof window !== 'undefined') {
         const demoProfile = localStorage.getItem('demo_profile');
         if (demoProfile) {
-          return JSON.parse(demoProfile) as UserProfile;
+          return parseJsonSafe<UserProfile | null>(demoProfile, null);
         }
       }
       return null;
@@ -66,7 +67,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
   } catch {
     if (typeof window !== 'undefined') {
       const demoProfile = localStorage.getItem('demo_profile');
-      if (demoProfile) return JSON.parse(demoProfile) as UserProfile;
+      if (demoProfile) return parseJsonSafe<UserProfile | null>(demoProfile, null);
     }
     return null;
   }
@@ -80,10 +81,13 @@ export async function authorizeRole(
     const authHeader = req.headers.get('Authorization');
 
     if (DEMO_AUTH_ENABLED) {
-      const demoOverrideHeader = req.headers.get('x-demo-role') as AppRole | null;
+      const demoOverrideHeader = req.headers.get('x-demo-role');
       const demoUserIdHeader = req.headers.get('x-demo-user-id');
 
-      if (demoOverrideHeader && allowedRoles.includes(demoOverrideHeader)) {
+      if (
+        isAppRole(demoOverrideHeader) &&
+        allowedRoles.includes(demoOverrideHeader)
+      ) {
         return {
           authorized: true,
           userId: demoUserIdHeader ?? 'demo-user-id',

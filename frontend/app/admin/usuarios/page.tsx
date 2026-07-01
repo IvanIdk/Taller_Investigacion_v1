@@ -2,6 +2,8 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { parseJsonSafe } from '@/lib/safeJson';
+import type { UserProfile } from '@/lib/types/domain';
 
 export default function AdminUsuariosPage() {
   const router = useRouter();
@@ -56,7 +58,7 @@ export default function AdminUsuariosPage() {
         const currentUserId = localStorage.getItem('demo_user_id');
         if (userId === currentUserId) {
           localStorage.setItem('demo_role', newRole);
-          const currentProfile = JSON.parse(localStorage.getItem('demo_profile') || '{}');
+          const currentProfile = parseJsonSafe<Partial<UserProfile>>(localStorage.getItem('demo_profile'), {});
           localStorage.setItem('demo_profile', JSON.stringify({ ...currentProfile, role: newRole }));
         }
 

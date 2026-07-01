@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import './globals.css';
+import { parseJsonSafe } from '@/lib/safeJson';
+import type { UserProfile } from '@/lib/types/domain';
 
 export default function RootLayout({
   children,
@@ -11,14 +13,14 @@ export default function RootLayout({
 }) {
   const [mounted, setMounted] = useState(false);
   const [role, setRole] = useState<string | null>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     setMounted(true);
     const storedRole = localStorage.getItem('demo_role');
     const storedProfile = localStorage.getItem('demo_profile');
     if (storedRole) setRole(storedRole);
-    if (storedProfile) setProfile(JSON.parse(storedProfile));
+    if (storedProfile) setProfile(parseJsonSafe<UserProfile | null>(storedProfile, null));
   }, []);
 
   const handleLogout = () => {

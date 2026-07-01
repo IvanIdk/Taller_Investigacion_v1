@@ -7,6 +7,7 @@ import RiskMeter from '@/components/RiskMeter';
 import ShapChart from '@/components/ShapChart';
 import { getRiskDisplay, maxProbability } from '@/lib/risk';
 import type { PredictionResult } from '@/lib/types/domain';
+import { parseJsonSafe } from '@/lib/safeJson';
 
 export default function ResultadosPage() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function ResultadosPage() {
     const storedCount = localStorage.getItem('last_answers_count');
     
     if (storedPred) {
-      setPrediction(JSON.parse(storedPred));
+      setPrediction(parseJsonSafe<PredictionResult | null>(storedPred, null));
     } else {
       setPrediction(DEFAULT_PREDICTION);
     }

@@ -1,5 +1,11 @@
 export type AppRole = 'admin' | 'psicologo' | 'estudiante';
 
+const APP_ROLES: AppRole[] = ['admin', 'psicologo', 'estudiante'];
+
+export function isAppRole(value: string | null): value is AppRole {
+  return value !== null && APP_ROLES.includes(value as AppRole);
+}
+
 export interface ShapValue {
   feature_name: string;
   attribution: number;

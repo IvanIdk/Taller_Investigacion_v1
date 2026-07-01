@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import QuickLogin from '@/components/QuickLogin';
+import { parseJsonSafe } from '@/lib/safeJson';
+import type { UserProfile } from '@/lib/types/domain';
 
 export default function HomePage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [role, setRole] = useState<string | null>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -24,7 +26,7 @@ export default function HomePage() {
       }
     }
     if (storedProfile) {
-      setProfile(JSON.parse(storedProfile));
+      setProfile(parseJsonSafe<UserProfile | null>(storedProfile, null));
     }
   }, [router]);
 
